@@ -2,12 +2,11 @@ PlayersList = new Mongo.Collection('players');
 
 if( Meteor.isClient){
   console.log("Hello Client");
+  Meteor.subscribe('thePlayers');
 
   Template.leaderboard.helpers({
     'player' : function(){
-
       return PlayersList.find({},{sort:{score:-1}});
-
     },
     'selectedClass': function () {
       var playerId = this._id;
@@ -50,15 +49,24 @@ if( Meteor.isClient){
     'submit form' : function (event) {
       event.preventDefault();
       var playerNameVar = event.target.playerName.value;
+      var currrentUserId = Meteor.userId();
+
       console.log(playerNameVar);
       PlayersList.insert({
         name:playerNameVar,
-        score:0
+        score:0,
+        createdBy:currrentUserId
       });
 
     }
   });
 }
-else{
-  console.log("Hello server");
+
+
+if( Meteor.isServer){
+  Meteor.publish('thePlayers', function () {
+    var currentUserId = this.userId;
+
+    return PlayersList.find({createdBy:currentUserId});
+  });
 }
